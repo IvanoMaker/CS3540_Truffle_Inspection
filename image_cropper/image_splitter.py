@@ -5,6 +5,8 @@ import os
 OUTPUT_DIR = "output"      # output directory for cropped images
 INPUT_DIR = "input_images" # input directory for images
 
+# if you can read this, i signed into the correct account
+
 imgs = [f for f in os.listdir(INPUT_DIR) if os.path.isfile(os.path.join(INPUT_DIR, f))]
 print(f"Found {len(imgs)} images in {INPUT_DIR}...")
 print(f"Processing and saving cropped images to {OUTPUT_DIR}...")
