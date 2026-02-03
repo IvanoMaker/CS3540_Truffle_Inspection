@@ -2,14 +2,15 @@ import cv2
 import numpy as np
 import os
 
+# ensure these two folders are in the same directory as this script
 OUTPUT_DIR = "output"      # output directory for cropped images
 INPUT_DIR = "input_images" # input directory for images
 
-# if you can read this, i signed in with the right account
+imgs = [f for f in os.listdir(INPUT_DIR) if os.path.isfile(os.path.join(INPUT_DIR, f))]  # get list of image files in the input_images folders
+print(f"Found {len(imgs)} images in {INPUT_DIR}...")                # "Found x images in input_images..."
+print(f"Processing and saving cropped images to {OUTPUT_DIR}...")   # "Processing and saving cropped images to output..."
 
-imgs = [f for f in os.listdir(INPUT_DIR) if os.path.isfile(os.path.join(INPUT_DIR, f))]
-print(f"Found {len(imgs)} images in {INPUT_DIR}...")
-print(f"Processing and saving cropped images to {OUTPUT_DIR}...")
+# detect and crop truffles from each image
 for k, img_file in enumerate(imgs):
     img = cv2.imread(os.path.join(INPUT_DIR, img_file))        # import image
     lab = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)  # convert to LAB color space (https://en.wikipedia.org/wiki/CIELAB_color_space)
@@ -67,5 +68,5 @@ for k, img_file in enumerate(imgs):
         # save cropped image to the directory
         output_path = os.path.join(OUTPUT_DIR, f"truffle_{i}.png")
         cv2.imwrite(output_path, crop_img)
-    print(f"{k+1}/{len(imgs)} images processed...")
-print("All images processsed.")
+    print(f"{k+1}/{len(imgs)} images processed...")  # "x/y images processed..."
+print("All images processsed.")                      # "All images processed."
