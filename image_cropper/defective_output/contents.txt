@@ -1,0 +1,1 @@
+This folder is the destination directory for cropped outputs of defective truffles.
