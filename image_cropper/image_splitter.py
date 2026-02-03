@@ -5,7 +5,6 @@ import os
 # ensure these two folders are in the same directory as this script
 OUTPUT_DIR = "output"      # output directory for cropped images
 INPUT_DIR = "input_images" # input directory for images
-#test: works on other computer
 
 imgs = [f for f in os.listdir(INPUT_DIR) if os.path.isfile(os.path.join(INPUT_DIR, f))]  # get list of image files in the input_images folders
 print(f"Found {len(imgs)} images in {INPUT_DIR}...")                # "Found x images in input_images..."
