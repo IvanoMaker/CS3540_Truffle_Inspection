@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import os
 
-OUTPUT_DIR = "output" # output directory for cropped images
+OUTPUT_DIR = "output"      # output directory for cropped images
 INPUT_DIR = "input_images" # input directory for images
 
 imgs = [f for f in os.listdir(INPUT_DIR) if os.path.isfile(os.path.join(INPUT_DIR, f))]
