@@ -3,28 +3,42 @@ import numpy as np
 import os
 
 # ensure these two folders are in the same directory as this script
-OUTPUT_DIR = "output"      # output directory for cropped images
-INPUT_DIR = "input_images" # input directory for images
+OUTPUT_DIR = "image_cropper/output"      # output directory for cropped images
+INPUT_DIR = "image_cropper/input_images" # input directory for images
 
 imgs = [f for f in os.listdir(INPUT_DIR) if os.path.isfile(os.path.join(INPUT_DIR, f))]  # get list of image files in the input_images folders
 print(f"Found {len(imgs)} images in {INPUT_DIR}...")                # "Found x images in input_images..."
 print(f"Processing and saving cropped images to {OUTPUT_DIR}...")   # "Processing and saving cropped images to output..."
 
+count = 0
+
 # detect and crop truffles from each image
 for k, img_file in enumerate(imgs):
     img = cv2.imread(os.path.join(INPUT_DIR, img_file))        # import image
-    lab = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)  # convert to LAB color space (https://en.wikipedia.org/wiki/CIELAB_color_space)
-    L, A, B = cv2.split(lab)                    # split the LAB image to different channels
+    lab = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
+    L, A, B = cv2.split(lab)
 
-    # Thresholding to create a binary mask for dark regions (truffles)
-    # for each pixel in L channel, if value < 120, set to 255 (white), else set to 0 (black)
-    _, dark_mask = cv2.threshold(L, 120, 255, cv2.THRESH_BINARY_INV)
+    # dark mask
+    _, dark_mask = cv2.threshold(
+        L, 135, 255, cv2.THRESH_BINARY_INV
+    )
 
-    # create kernal for morphological operations
-    # use closing to fill small holes, then opening to remove small noise
-    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (9, 9))
-    mask = cv2.morphologyEx(dark_mask, cv2.MORPH_CLOSE, kernel)
-    mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
+    # red mask
+    _, red_mask = cv2.threshold(
+        A, 150, 255, cv2.THRESH_BINARY
+    )
+
+    # Invert red mask so red becomes black (removed)
+    red_mask_inv = cv2.bitwise_not(red_mask)
+
+    # dark and not red
+    mask = cv2.bitwise_and(dark_mask, red_mask_inv)
+
+    # morphology tuned for round objects
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7))
+
+    mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel, iterations=2)
+    mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel, iterations=2)
 
     # find contours in the mask, this is the detecting part
     contours, _ = cv2.findContours(
@@ -40,7 +54,7 @@ for k, img_file in enumerate(imgs):
     CROP_RADIUS = int(SINGLE_RADIUS * 1.2)  # margin
 
     # for each controur found
-    for i, cnt in enumerate(contours):
+    for cnt in contours:
         area = cv2.contourArea(cnt)
         if area < 2000: # filter out small areas, like drops from the icing
             continue
@@ -66,7 +80,9 @@ for k, img_file in enumerate(imgs):
         if crop_img.size == 0:
             continue
         # save cropped image to the directory
-        output_path = os.path.join(OUTPUT_DIR, f"truffle_{i}.png")
+        output_path = os.path.join(OUTPUT_DIR, f"truffle_{count}.png")
         cv2.imwrite(output_path, crop_img)
+        count += 1
+        
     print(f"{k+1}/{len(imgs)} images processed...")  # "x/y images processed..."
 print("All images processsed.")                      # "All images processed."
