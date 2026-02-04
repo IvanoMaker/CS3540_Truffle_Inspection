@@ -6,6 +6,9 @@ import os
 OUTPUT_DIR = "image_cropper/output"      # output directory for cropped images
 INPUT_DIR = "image_cropper/input_images" # input directory for images
 
+CROP_SIZE = 128         # image size is a fixed 128x128
+HALF = CROP_SIZE // 2   # calculate half of the fixed image size
+
 imgs = [f for f in os.listdir(INPUT_DIR) if os.path.isfile(os.path.join(INPUT_DIR, f))]  # get list of image files in the input_images folders
 print(f"Found {len(imgs)} images in {INPUT_DIR}...")                # "Found x images in input_images..."
 print(f"Processing and saving cropped images to {OUTPUT_DIR}...")   # "Processing and saving cropped images to output..."
@@ -59,30 +62,34 @@ for k, img_file in enumerate(imgs):
         if area < 2000: # filter out small areas, like drops from the icing
             continue
 
-        M = cv2.moments(cnt) # calculate moments for each contour
-        if M["m00"] == 0:    # avoid division by zero errors
-            continue
-
-        cx = int(M["m10"] / M["m00"]) # centroid x
-        cy = int(M["m01"] / M["m00"]) # centroid y
+        # center from enclosing circle
+        (cx, cy), radius = cv2.minEnclosingCircle(cnt)
+        cx, cy = int(cx), int(cy)
 
         r = CROP_RADIUS
 
-        # crop square dimensions
-        y1 = max(0, cy - r)
-        y2 = min(img.shape[0], cy + r)
-        x1 = max(0, cx - r)
-        x2 = min(img.shape[1], cx + r)
+        # desired crop bounds
+        x1 = cx - HALF
+        y1 = cy - HALF
+        x2 = cx + HALF
+        y2 = cy + HALF
+
+        # image bounds
+        h, w = img.shape[:2]
+
+        # clamp crop to image
+        x1_clamp = max(0, x1)
+        y1_clamp = max(0, y1)
+        x2_clamp = min(w, x2)
+        y2_clamp = min(h, y2)
 
         # crop the image
-        crop_img = img[y1:y2, x1:x2]
-        # skip empty crops
-        if crop_img.size == 0:
-            continue
+        crop = img[y1_clamp:y2_clamp, x1_clamp:x2_clamp]
+        
         # save cropped image to the directory
         output_path = os.path.join(OUTPUT_DIR, f"truffle_{count}.png")
-        cv2.imwrite(output_path, crop_img)
+        cv2.imwrite(output_path, crop)
         count += 1
-        
+
     print(f"{k+1}/{len(imgs)} images processed...")  # "x/y images processed..."
 print("All images processsed.")                      # "All images processed."
