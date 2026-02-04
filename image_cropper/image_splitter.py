@@ -13,13 +13,15 @@ imgs = [f for f in os.listdir(INPUT_DIR) if os.path.isfile(os.path.join(INPUT_DI
 print(f"Found {len(imgs)} images in {INPUT_DIR}...")                # "Found x images in input_images..."
 print(f"Processing and saving cropped images to {OUTPUT_DIR}...")   # "Processing and saving cropped images to output..."
 
+# counter for naming the cropped images
+# defined outsid the loop to avoid overwriting previous images
 count = 0
 
 # detect and crop truffles from each image
 for k, img_file in enumerate(imgs):
-    img = cv2.imread(os.path.join(INPUT_DIR, img_file))        # import image
-    lab = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
-    L, A, B = cv2.split(lab)
+    img = cv2.imread(os.path.join(INPUT_DIR, img_file))   # import image
+    lab = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)            # convert to LAB color space
+    L, A, B = cv2.split(lab)                              # split into channels
 
     # dark mask
     _, dark_mask = cv2.threshold(
@@ -34,12 +36,11 @@ for k, img_file in enumerate(imgs):
     # Invert red mask so red becomes black (removed)
     red_mask_inv = cv2.bitwise_not(red_mask)
 
-    # dark and not red
+    # create mask with the boolean AND of dark and not-red masks
     mask = cv2.bitwise_and(dark_mask, red_mask_inv)
 
-    # morphology tuned for round objects
+    # morphology tuned for round objects, opencv magic
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7))
-
     mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel, iterations=2)
     mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel, iterations=2)
 
