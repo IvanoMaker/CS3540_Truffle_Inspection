@@ -9,6 +9,8 @@ from PIL import Image
 
 img_count = 0
 bad_size = 0
+satisfactory_imgs_count = 0
+defective_imgs_count = 0
 
 PARENT_DIR = "satisfactory_defect_images"
 CHILD_DIR = [fld for fld in Path(PARENT_DIR).iterdir() if fld.is_dir()]
@@ -24,14 +26,24 @@ for child in CHILD_DIR:
 
 print("~ Dataset Construction Script ~")
 print(f"searching through folders in {PARENT_DIR}")
-print(f"video folders loaded : {len(CHILD_DIR)}")
+print(f"\nvideo folders loaded : {len(CHILD_DIR)}")
 print(f"       images loaded : {img_count}")
 
 for folder, paths in IMGS.items():
     for img_path in paths:
+        img_class = str(img_path).split("\\")[-2]
+        if img_class == 'satisfactory':
+            satisfactory_imgs_count += 1
+        elif img_class == 'defective':
+            defective_imgs_count += 1
+
         image = Image.open(img_path)
         width, height = image.size
         if (width != 128) or (height != 128):
             bad_size += 1
 
 assert bad_size == 0, "bad sized image"
+
+print(f"\nsatisfactory samples: {satisfactory_imgs_count}")
+print(f"   defective samples: {defective_imgs_count}")
+print(f"defective prop: {(defective_imgs_count/img_count):.2f}")
