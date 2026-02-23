@@ -24,7 +24,7 @@ for child in CHILD_DIR:
             IMGS[fld] = [img for img in Path(fld).iterdir()]
             img_count += len(IMGS[fld])
 
-print("~ Dataset Construction Script ~")
+print("~ Dataset Validation Script ~")
 print(f"searching through folders in {PARENT_DIR}")
 print(f"\nvideo folders loaded : {len(CHILD_DIR)}")
 print(f"       images loaded : {img_count}")
@@ -41,7 +41,7 @@ for folder, paths in IMGS.items():
         width, height = image.size
         if (width != 128) or (height != 128):
             bad_size += 1
-
+            
 assert bad_size == 0, "bad sized image"
 
 print(f"\nsatisfactory samples: {satisfactory_imgs_count}")
