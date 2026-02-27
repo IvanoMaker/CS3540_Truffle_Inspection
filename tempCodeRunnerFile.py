@@ -1,1 +1,0 @@
-            print("resized img")
