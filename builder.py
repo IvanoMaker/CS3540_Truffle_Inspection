@@ -16,13 +16,12 @@ IMGS = {}
 
 DB_DIR = "dataset"
 BD_CHILD_DIR = [fld for fld in Path(DB_DIR).iterdir() if fld.is_dir()]
-
+      
 for child in CHILD_DIR:
     for fld in Path(child).iterdir(): 
         if fld.is_dir():
             GRANDCHILD_DIR[child] = fld
             t_type = (str(fld).split("\\")[-1])
-
             for img in Path(fld).iterdir():
                 if img.is_file():
                     img_count += 1
