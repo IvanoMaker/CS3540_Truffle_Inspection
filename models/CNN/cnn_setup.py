@@ -1,8 +1,34 @@
-from pathlib import Path
+import os
+import numpy as np
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # turn off debugging messages
+import tensorflow as tf
+import matplotlib.pyplot as plt
 
 # NOTE: This file is intended to be executed in VSCode with the working directory set to 
 # the root of the project. If you run it from a different location or from the terminal in the CNN folder, 
-# you may need to adjust the DATASET_PATH to "../../dataset".  -Evan
+# you may need to adjust X_DATA_PATH and Y_LABELS_PATH accordingly.  -Evan
 
-DATASET_PATH = "dataset"
-print(list(Path(DATASET_PATH).glob("*")))
+X_DATA_PATH = "x_data_flattened.npy"
+Y_LABELS_PATH = "y_labels.npy"
+DO_LOGGING = True
+
+# reconstruct flattened data to 128x128 color images
+X_DATA = np.load(X_DATA_PATH).reshape(-1, 128, 128, 3)
+Y_LABELS = np.load(Y_LABELS_PATH)
+
+INPUT_LAYER_SIZE = (240, 240) # input layer size for EfficientNetB1
+
+# convert image to a 3D Numpy array
+# takes image path input and returns 240x240x3 matrix (width x height x rgb channels)
+def convert_image_to_3dmtx(img, target_size=INPUT_LAYER_SIZE):
+    img = tf.image.resize(img, target_size)
+    return img.numpy() / 255.0
+
+if __name__ == "__main__":
+    if DO_LOGGING:
+        print(f"- n samples: {X_DATA.shape[0]}, image dimensions: {X_DATA.shape[1:]}")
+
+    reshaped_x_data = np.array([convert_image_to_3dmtx(img) for img in X_DATA])
+
+    if DO_LOGGING:
+        print(f"- reshaped x data shape: {reshaped_x_data.shape[1:]}")
