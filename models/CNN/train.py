@@ -6,7 +6,14 @@ import matplotlib.pyplot as plt
 
 DO_STATUS_UPDATES = True
 
-X_DATA = np.load("x_resized.npy")
+try:
+    X_DATA = np.load("x_resized.npy")
+except FileNotFoundError:
+    print("🚨🚨 CRITICAL RUNTIME ERROR DETECTED 🚨🚨")
+    print("Oopsie Daisy! looks like you dont have the x_resized.npy file (the one that was too large to push to the repo)")
+    print("Run the cnn_setup.py script to create it in the same directory as the x_data.npy and y_labels.npt files.")
+    exit(1)
+
 Y_LABELS = np.load("y_labels.npy")
 
 # control and display constants
