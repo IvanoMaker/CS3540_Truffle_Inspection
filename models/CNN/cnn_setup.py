@@ -2,7 +2,6 @@ import os
 import numpy as np
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # turn off debugging messages
 import tensorflow as tf
-import matplotlib.pyplot as plt
 
 # NOTE: This file is intended to be executed in VSCode with the working directory set to 
 # the root of the project. If you run it from a different location or from the terminal in the CNN folder, 
@@ -32,3 +31,5 @@ if __name__ == "__main__":
 
     if DO_LOGGING:
         print(f"- reshaped x data shape: {reshaped_x_data.shape[1:]}")
+
+    np.save("x_resized.npy", reshaped_x_data)
