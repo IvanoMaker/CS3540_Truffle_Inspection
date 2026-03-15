@@ -29,7 +29,7 @@ n = X_DATA.shape[0]
 val_size = int(n * TEST_TRAIN_RATIO)
 train_size = n - val_size
 
-dataset = dataset.shuffle(n, seed=42)
+dataset = dataset.shuffle(n, seed=1738)
 
 train_dataset = dataset.take(train_size)
 val_dataset = dataset.skip(train_size)
