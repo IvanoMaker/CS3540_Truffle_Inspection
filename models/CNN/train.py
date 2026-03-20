@@ -112,9 +112,21 @@ if temp_input == "y":
     model.save("truffle_cnn_model.h5")
     print("[/] model saved as truffle_cnn_model.h5")
 
+print("[/] printing final training accuracy and loss")
+final_train_acc = history.history["accuracy"][-1]
+final_val_acc = history.history["val_accuracy"][-1]
+final_train_loss = history.history["loss"][-1]
+final_val_loss = history.history["val_loss"][-1]
+print(f" - final training accuracy: {final_train_acc:.4f}")
+print(f" - final validation accuracy: {final_val_acc:.4f}")
+print(f" - final training loss: {final_train_loss:.4f}")
+print(f" - final validation loss: {final_val_loss:.4f}") 
+
 print("[/] plotting training history")
 
 plt.plot(history.history["accuracy"], label="train acc")
 plt.plot(history.history["val_accuracy"], label="val acc")
+plt.xlabel("Epoch")
+plt.ylabel("Accuracy")
 plt.legend()
 plt.show()
