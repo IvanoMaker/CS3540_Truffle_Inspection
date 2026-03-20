@@ -130,7 +130,8 @@ history = model.fit(
     train_dataset,
     validation_data=val_dataset,
     epochs=EPOCHS,
-    class_weight=class_weights
+    class_weight=class_weights,
+    verbose = 2
 )
 
 if DO_STATUS_UPDATES:
