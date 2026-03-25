@@ -41,8 +41,8 @@ TEST_TRAIN_RATIO = 0.25              # proportion of data to use for validation
 IMAGE_SHAPE = (240, 240, 3)          # size of input images, should never change
 BATCH_SIZE = 32                      # number of samples per training batch
 HIDDEN_LAYER_ACTIVATION = "relu"     # activation function for hidden layers
-OUTPUT_LAYER_ACTIVATION = "sigmoid"  # activation function for output layer
-LOSS_FUNCTION = "binary_crossentropy"  # loss function for training
+OUTPUT_LAYER_ACTIVATION = "softmax"  # activation function for output layer
+LOSS_FUNCTION = "sparse_categorical_crossentropy"  # loss function for training
 LEARNING_RATE = 0.001                # learning rate for the optimizer
 SEED = 1738                          # random seed for reproducibility
 
@@ -90,7 +90,8 @@ x = layers.BatchNormalization()(x)                              # batch normaliz
 x = layers.Dense(128, activation=HIDDEN_LAYER_ACTIVATION)(x)    # fully connected layer with specified activation function
 x = layers.Dropout(0.3)(x)                                      # dropout for regularization to prevent overfitting
 
-outputs = layers.Dense(1, activation=OUTPUT_LAYER_ACTIVATION)(x)
+num_classes = len(np.unique(Y_LABELS))
+outputs = layers.Dense(num_classes, activation=OUTPUT_LAYER_ACTIVATION)(x)
 # Create the final model structure
 model = models.Model(inputs=base_model.input, outputs=outputs)
 
@@ -98,13 +99,10 @@ model = models.Model(inputs=base_model.input, outputs=outputs)
 model.compile(
     # more info on Adam optimizer: https://keras.io/api/optimizers/adam/
     optimizer=optimizers.Adam(learning_rate=LEARNING_RATE),
-    # we use binary_crossentropy because our labels are binary (0 and 1)
+    # we use sparse_categorical_crossentropy because our labels are integers (0, 1, 2, ...)
     loss=LOSS_FUNCTION,
     metrics=[
-        "accuracy",
-        tf.keras.metrics.Precision(),
-        tf.keras.metrics.Recall(),
-        tf.keras.metrics.AUC(name="auc")
+        "accuracy"
     ]
 )
 
@@ -129,9 +127,7 @@ print("[/] grab a snack, this may take a while...")
 history = model.fit(
     train_dataset,
     validation_data=val_dataset,
-    epochs=EPOCHS,
-    class_weight=class_weights,
-    verbose = 2
+    epochs=EPOCHS
 )
 
 if DO_STATUS_UPDATES:
