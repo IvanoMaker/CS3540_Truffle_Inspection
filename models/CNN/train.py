@@ -14,6 +14,23 @@ DO_STATUS_UPDATES = True
 # If False, the dataset will be shuffled randomly each time, which may lead to different training/validation splits on each run.
 SEEDED_SHUFFLE = True
 
+ENABLE_GPU_ACCELERATION = True
+if ENABLE_GPU_ACCELERATION:
+    gpus = tf.config.list_physical_devices('GPU')
+    if gpus:
+        try: # only allocate memory as needed
+            for gpu in gpus:
+                tf.config.experimental.set_memory_growth(gpu, True)
+            print(f"[/] GPU Acceleration Enabled: Using {len(gpus)} GPU(s)")
+        except RuntimeError as e:
+            print(f"[!] GPU Configuration error: {e}")
+    else:
+        print("[!] ENABLE_GPU_ACCELERATION is True, but no GPU was found. Falling back to CPU.")
+else:
+    # Explicitly hide GPUs if the flag is False
+    os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+    print("[/] GPU Acceleration Disabled. Using CPU.")
+
 try:
     X_DATA = np.load("x_resized.npy")
 except FileNotFoundError:
