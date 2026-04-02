@@ -4,7 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 
-
+import seaborn as sns
 
 
 imagesPath = "C:/Users/boyle/PycharmProjects/TruffleDefectDetection/x_data_flattened.npy"
@@ -23,8 +23,7 @@ Y = labels.reshape(-1,1)
 X_train, X_test, Y_train, Y_test = train_test_split(X,Y,test_size = 0.2, random_state = 42, stratify = Y)
 
 def hypothesis(X, theta):
-    # h =  write your code here.
-    h = 1/(1+np.exp((-np.dot(X,theta))))
+    h = np.clip(1/(1+np.exp((-np.dot(X,theta)))), 1e-10, 1-1e-10)
     return h
 
 def calcLogRegressionCost(X, Y, theta):
@@ -50,8 +49,8 @@ def logRegressionGradientDescent(X, Y, theta, eta, iters):
     return theta, cost
 
 
-eta = 0.1
-iters = 3000
+eta = 0.0001
+iters = 5000
 theta = np.zeros((X_train.shape[1], 1))
 print('Training')
 theta, cost = logRegressionGradientDescent(X_train, Y_train, theta, eta, iters)
@@ -64,3 +63,14 @@ sns.lineplot(x = range(iters), y = cost)
 plt.xlabel('Iterations')
 plt.ylabel('Cost')
 plt.show()
+
+print('Gona Predict')
+def predict(X, theta, threshold=0.5):
+    return (hypothesis(X, theta) >= threshold).astype(int)
+
+Y_predict = predict(X_test, theta)
+print('checking accuracy')
+accuracy = np.mean(Y_predict == Y_test)
+
+print(f"Accuracy = {accuracy}")
+
