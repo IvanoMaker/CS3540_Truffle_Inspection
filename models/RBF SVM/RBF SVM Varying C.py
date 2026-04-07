@@ -51,6 +51,6 @@ for i,C in enumerate(c):
 plt.plot(c, accuracy)
 plt.xscale('log')
 plt.ylabel('Accuracy')
-plt.xlabel('Degree')
+plt.xlabel('C')
 plt.title('Accuracy vs. C')
 plt.savefig('Accuracy vs C.png')
