@@ -74,3 +74,15 @@ accuracy = np.mean(Y_predict == Y_test)
 
 print(f"Accuracy = {accuracy}")
 
+TrueDefective = np.sum((Y_predict == 1) & (Y_test == 1))
+TrueSatisfactory = np.sum((Y_predict == 0) & (Y_test == 0))
+FalseDefective = np.sum((Y_predict == 1) & (Y_test == 0))
+FalseSatisfactory = np.sum((Y_predict == 0) & (Y_test == 1))
+
+print(f"True Defective Count: {TrueDefective}")
+print(f"True Satisfactory Count: {TrueSatisfactory}")
+print(f"False Defective Count: {FalseDefective}")
+print(f"False Satisfactory Count: {FalseSatisfactory}")
+
+precision = TrueDefective / (TrueDefective + FalseDefective)
+print(f"Precision = {precision}")
