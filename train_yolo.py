@@ -4,7 +4,7 @@ from ultralytics import YOLO
 model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
 
 # Train the model
-results = model.train(data="data.yaml", epochs=10, imgsz=224)
+results = model.train(data="data.yaml", epochs=10, imgsz=640)
 
 # Save the model
 model.save("truffle_yolo_model.pt")

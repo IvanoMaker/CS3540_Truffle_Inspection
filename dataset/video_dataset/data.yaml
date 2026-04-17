@@ -1,0 +1,6 @@
+path: C:\Users\rpoli\Documents\College\Machine Learning (CS 3540)\CS3540_Truffle_Inspection\dataset\video_dataset
+train: images
+val: images
+
+nc: 1
+names: ['truffle']

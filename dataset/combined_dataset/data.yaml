@@ -1,0 +1,6 @@
+names:
+- truffle
+nc: 1
+path: C:\Users\rpoli\Documents\College\Machine Learning (CS 3540)\CS3540_Truffle_Inspection\dataset\combined_dataset
+train: images/train
+val: images/val
