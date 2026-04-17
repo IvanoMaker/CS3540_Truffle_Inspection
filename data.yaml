@@ -1,9 +1,7 @@
-# YOLO Classification Data Configuration
-train: dataset/train
-val: dataset/val
+# YOLO Detection Data Configuration
+train: dataset/train/truffles
+val: dataset/val/truffles
 
-# Number of classes
 nc: 1
 
-# Class names
 names: ['truffle']

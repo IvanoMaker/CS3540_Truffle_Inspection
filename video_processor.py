@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 from ultralytics import YOLO
+from tensorflow.keras.models import load_model
 
 # =========================
 # LOAD MODELS
@@ -20,20 +21,13 @@ CLASS_NAMES = ["Good", "Defective"]  # adjust if you have more classes
 # CNN CLASSIFIER
 # =========================
 def classify_truffle(image):
-    # img = cv2.resize(image, IMG_SIZE)
-    # img = img / 255.0
-    # img = np.expand_dims(img, axis=0)
+    img = cv2.resize(image, IMG_SIZE)
+    img = img / 255.0
+    img = np.expand_dims(img, axis=0)
 
-    # preds = cnn_model.predict(img, verbose=0)[0]
-    # class_idx = np.argmax(preds)
-    # confidence = preds[class_idx]
-
-    # return CLASS_NAMES[class_idx], confidence
-
-    results = yolo_cls_model(image)
-    probs = results[0].probs
-    class_idx = np.argmax(probs.data)
-    confidence = probs.data[class_idx]
+    preds = cnn_model.predict(img, verbose=0)[0]
+    class_idx = np.argmax(preds)
+    confidence = preds[class_idx]
 
     return CLASS_NAMES[class_idx], confidence
 
@@ -41,8 +35,8 @@ def classify_truffle(image):
 # =========================
 # VIDEO INPUT
 # =========================
-cap = cv2.VideoCapture(0)  # webcam
-# cap = cv2.VideoCapture("input.mp4")  # use video file instead
+# cap = cv2.VideoCapture(0)  # webcam
+cap = cv2.VideoCapture("Truffle Defect recording.mp4")  # use video file instead
 
 while cap.isOpened():
     ret, frame = cap.read()
