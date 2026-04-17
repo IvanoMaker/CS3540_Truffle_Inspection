@@ -5,7 +5,8 @@ from pathlib import Path
 # Configuration
 VIDEO_FILE = "Truffle Defect recording.mp4"
 OUTPUT_DIR = "dataset/video_frames"
-FRAME_INTERVAL = 30  # Extract every 30th frame (adjust for more/fewer frames)
+FRAME_INTERVAL = 29  # Extract every 29th frame
+MAX_FRAMES = 60  # Maximum number of frames to extract
 
 # Create output directory
 Path(OUTPUT_DIR).mkdir(parents=True, exist_ok=True)
@@ -23,7 +24,7 @@ print(f"Video FPS: {fps}")
 
 while True:
     ret, frame = cap.read()
-    if not ret:
+    if not ret or saved_count >= MAX_FRAMES:
         break
     
     if frame_count % FRAME_INTERVAL == 0:

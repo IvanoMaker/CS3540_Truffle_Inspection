@@ -49,7 +49,7 @@ def classify_truffle(image):
     preds = cnn_model.predict(img, verbose=0)[0]
     class_idx = np.argmax(preds)
     confidence = preds[class_idx]
-    return CLASS_NAMES[class_idx], confidence
+    return CLASS_NAMES[class_idx], confidence, preds
 
 
 # =========================
@@ -60,6 +60,20 @@ cap = cv2.VideoCapture(VIDEO_FILE)
 if not cap.isOpened():
     print(f"Error: Could not open video file: {VIDEO_FILE}")
     exit()
+
+# Get video properties for output
+fps = cap.get(cv2.CAP_PROP_FPS)
+width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+
+# Define output video path
+output_video_path = "processed_" + VIDEO_FILE
+
+# Create VideoWriter object
+fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # Use 'XVID' for AVI format if needed
+out = cv2.VideoWriter(output_video_path, fourcc, fps, (width, height))
+
+print(f"Processing video and saving to: {output_video_path}")
 
 while cap.isOpened():
     ret, frame = cap.read()
@@ -78,7 +92,7 @@ while cap.isOpened():
             if crop.size == 0:
                 continue
 
-            label, conf = classify_truffle(crop)
+            label, conf, preds = classify_truffle(crop)
             color = (0, 255, 0) if label == "Good" else (0, 0, 255)
 
             cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
@@ -92,10 +106,16 @@ while cap.isOpened():
                 2,
             )
 
+    # Write the processed frame to the output video
+    out.write(frame)
+
     cv2.imshow("Truffle Detection", frame)
 
     if cv2.waitKey(1) & 0xFF == 27:  # ESC to exit
         break
 
 cap.release()
+out.release()
 cv2.destroyAllWindows()
+
+print(f"Processed video saved to: {output_video_path}")

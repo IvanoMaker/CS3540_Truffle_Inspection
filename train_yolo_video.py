@@ -1,5 +1,5 @@
 """
-Train YOLO on combined dataset (original + video annotations)
+Train YOLO on video annotations only
 """
 
 from ultralytics import YOLO
@@ -10,87 +10,68 @@ import yaml
 import torch
 
 # Paths
-ORIGINAL_DATASET = "dataset"
 VIDEO_DATASET = "dataset/video_dataset"
-COMBINED_DATASET = "dataset/combined_dataset"
+VIDEO_TRAIN_DATASET = "dataset/video_train_dataset"
 
-def create_combined_dataset():
-    """Combine original dataset with video annotations."""
+def prepare_video_dataset():
+    """Prepare video dataset for training with train/val split."""
     
-    print("Creating combined dataset...")
+    print("Preparing video dataset for training...")
     
-    # Create combined directory structure
-    Path(f"{COMBINED_DATASET}/images/train").mkdir(parents=True, exist_ok=True)
-    Path(f"{COMBINED_DATASET}/images/val").mkdir(parents=True, exist_ok=True)
-    Path(f"{COMBINED_DATASET}/labels/train").mkdir(parents=True, exist_ok=True)
-    Path(f"{COMBINED_DATASET}/labels/val").mkdir(parents=True, exist_ok=True)
+    # Create directory structure
+    Path(f"{VIDEO_TRAIN_DATASET}/images/train").mkdir(parents=True, exist_ok=True)
+    Path(f"{VIDEO_TRAIN_DATASET}/images/val").mkdir(parents=True, exist_ok=True)
+    Path(f"{VIDEO_TRAIN_DATASET}/labels/train").mkdir(parents=True, exist_ok=True)
+    Path(f"{VIDEO_TRAIN_DATASET}/labels/val").mkdir(parents=True, exist_ok=True)
     
-    # Copy original training data
-    print("Copying original training data...")
-    original_imgs = Path(f"{ORIGINAL_DATASET}/train/truffles")
-    original_lbls = Path(f"{ORIGINAL_DATASET}/train/truffles")
+    # Get all images and labels
+    video_imgs = list(Path(f"{VIDEO_DATASET}/images").glob("*"))
+    video_lbls = list(Path(f"{VIDEO_DATASET}/labels").glob("*"))
     
-    if original_imgs.exists():
-        for img in original_imgs.glob("*.png"):
-            shutil.copy(img, f"{COMBINED_DATASET}/images/train/{img.name}")
-        
-        for lbl in original_lbls.glob("*.txt"):
-            shutil.copy(lbl, f"{COMBINED_DATASET}/labels/train/{lbl.name}")
-        
-        print(f"  Copied original training images")
+    # Sort to ensure matching
+    video_imgs.sort()
+    video_lbls.sort()
     
-    # Copy video annotations
-    print("Copying video annotations...")
-    video_imgs = Path(f"{VIDEO_DATASET}/images")
-    video_lbls = Path(f"{VIDEO_DATASET}/labels")
+    n = len(video_imgs)
+    if n == 0:
+        print("No images found in video_dataset")
+        return None
     
-    if video_imgs.exists():
-        for img in video_imgs.glob("*"):
-            shutil.copy(img, f"{COMBINED_DATASET}/images/train/{img.name}")
-        
-        for lbl in video_lbls.glob("*"):
-            shutil.copy(lbl, f"{COMBINED_DATASET}/labels/train/{lbl.name}")
-        
-        print(f"  Copied video annotations")
+    # Split 80/20 for train/val
+    train_size = int(0.8 * n)
     
-    # Copy validation data
-    original_val = Path(f"{ORIGINAL_DATASET}/val/truffles")
-    if original_val.exists():
-        for img in original_val.glob("*.png"):
-            shutil.copy(img, f"{COMBINED_DATASET}/images/val/{img.name}")
-        
-        for lbl in original_val.glob("*.txt"):
-            shutil.copy(lbl, f"{COMBINED_DATASET}/labels/val/{lbl.name}")
-        
-        print(f"  Copied validation data")
+    print(f"Total video frames: {n}")
+    print(f"Training: {train_size}, Validation: {n - train_size}")
+    
+    for i, (img, lbl) in enumerate(zip(video_imgs, video_lbls)):
+        if i < train_size:
+            shutil.copy(img, f"{VIDEO_TRAIN_DATASET}/images/train/{img.name}")
+            shutil.copy(lbl, f"{VIDEO_TRAIN_DATASET}/labels/train/{lbl.name}")
+        else:
+            shutil.copy(img, f"{VIDEO_TRAIN_DATASET}/images/val/{img.name}")
+            shutil.copy(lbl, f"{VIDEO_TRAIN_DATASET}/labels/val/{lbl.name}")
     
     # Create data.yaml
     data_yaml = {
-        'path': os.path.abspath(COMBINED_DATASET),
+        'path': os.path.abspath(VIDEO_TRAIN_DATASET),
         'train': 'images/train',
         'val': 'images/val',
         'nc': 1,
         'names': ['truffle']
     }
     
-    yaml_path = f"{COMBINED_DATASET}/data.yaml"
+    yaml_path = f"{VIDEO_TRAIN_DATASET}/data.yaml"
     with open(yaml_path, 'w') as f:
         yaml.dump(data_yaml, f)
     
-    print(f"\nCombined dataset created at {COMBINED_DATASET}")
-    
-    # Count files
-    train_imgs = len(list(Path(f"{COMBINED_DATASET}/images/train").glob("*")))
-    val_imgs = len(list(Path(f"{COMBINED_DATASET}/images/val").glob("*")))
-    print(f"Training images: {train_imgs}")
-    print(f"Validation images: {val_imgs}")
+    print(f"Video dataset prepared at {VIDEO_TRAIN_DATASET}")
     
     return yaml_path
 
 def train_model(data_yaml):
-    """Train YOLO model on combined dataset."""
+    """Train YOLO model on video dataset."""
     
-    print("\n=== Training YOLO Model ===")
+    print("\n=== Training YOLO Model on Video Annotations Only ===")
     
     # Load pre-trained model
     model = YOLO("yolov8n.pt")
@@ -102,16 +83,16 @@ def train_model(data_yaml):
     # Train
     results = model.train(
         data=data_yaml,
-        epochs=30,  # Increased for better learning
-        imgsz=640,   # Larger size for better detection
-        patience=10, # Early stopping
+        epochs=50,  # More epochs since smaller dataset
+        imgsz=640,
+        patience=10,
         device=device,
-        name="video_trained"
+        name="video_only_trained"
     )
     
     # Save best model
-    model.save("truffle_yolo_model_video.pt")
-    print("\nModel saved as truffle_yolo_model_video.pt")
+    model.save("truffle_yolo_model_video_only.pt")
+    print("\nModel saved as truffle_yolo_model_video_only.pt")
     
     return results
 
@@ -119,24 +100,28 @@ if __name__ == "__main__":
     import sys
     
     # Check if video annotations exist
-    if not os.path.exists("dataset/video_dataset"):
+    if not os.path.exists(VIDEO_DATASET):
         print("Error: Video annotations not found.")
         print("Please run annotate_frames.py first.")
         sys.exit(1)
     
-    dataset_count = len(list(Path("dataset/video_dataset/labels").glob("*.txt")))
+    dataset_count = len(list(Path(f"{VIDEO_DATASET}/labels").glob("*.txt")))
     if dataset_count == 0:
         print("Error: No annotated frames found in dataset/video_dataset/")
         sys.exit(1)
     
     print(f"Found {dataset_count} annotated video frames")
     
-    # Create combined dataset
-    yaml_path = create_combined_dataset()
+    # Prepare video dataset
+    yaml_path = prepare_video_dataset()
+    
+    if yaml_path is None:
+        print("Failed to prepare dataset")
+        sys.exit(1)
     
     # Train model
     train_model(yaml_path)
     
     print("\n=== Training Complete ===")
     print("Next: Test the model with python video_processor.py")
-    print("(Update video_processor.py to use 'truffle_yolo_model_video.pt')")
+    print("(Update video_processor.py to use 'truffle_yolo_model_video_only.pt')")
