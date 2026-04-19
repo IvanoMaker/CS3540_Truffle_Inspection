@@ -8,3 +8,9 @@ Truffle Defect recording.mp4
 processed_Truffle_Defect_recording.mp4
 processed_Truffle_Defect_recording V1.mp4
 *.mp4
+x_resized.npy
+.idea/.gitignore
+.idea/inspectionProfiles/profiles_settings.xml
+.idea/misc.xml
+.idea/modules.xml
+.idea/vcs.xml
