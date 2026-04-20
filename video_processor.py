@@ -18,7 +18,7 @@ VIDEO_FILE = "Truffle Defect recording.mp4"
 # USER CONFIGURATION
 # =========================
 # Set to "CNN" or "SVM"
-CLASSIFIER = "CNN"
+CLASSIFIER = "SVM"
 
 # Must match your training setup for each model
 CNN_IMG_SIZE = (240, 240)
