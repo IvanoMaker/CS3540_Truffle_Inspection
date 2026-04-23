@@ -6,6 +6,7 @@ from tensorflow.keras.applications import EfficientNetB1
 from tensorflow.keras import layers, models, optimizers
 import matplotlib.pyplot as plt
 from sklearn.utils import class_weight
+from sklearn.model_selection import train_test_split
 
 # DO_STATUS_UPDATES controls whether the script prints status updates during execution. 
 # Set to False for a quieter run.
@@ -41,9 +42,9 @@ TEST_TRAIN_RATIO = 0.25              # proportion of data to use for validation
 IMAGE_SHAPE = (240, 240, 3)          # size of input images, should never change
 BATCH_SIZE = 32                      # number of samples per training batch
 HIDDEN_LAYER_ACTIVATION = "relu"     # activation function for hidden layers
-OUTPUT_LAYER_ACTIVATION = "softmax"  # activation function for output layer
-LOSS_FUNCTION = "sparse_categorical_crossentropy"  # loss function for training
-LEARNING_RATE = 0.001                # learning rate for the optimizer
+OUTPUT_LAYER_ACTIVATION = "sigmoid"  # activation function for output layer
+LOSS_FUNCTION = "binary_crossentropy"  # loss function for training
+LEARNING_RATE = 0.00001                # learning rate for the optimizer
 SEED = 1738                          # random seed for reproducibility
 
 
@@ -55,16 +56,22 @@ n = X_DATA.shape[0]
 val_size = int(n * TEST_TRAIN_RATIO)   # ensure whole sample size
 train_size = n - val_size
 
-if SEEDED_SHUFFLE:
-    dataset = dataset.shuffle(n, seed=SEED)
-else:
-    dataset = dataset.shuffle(n)
+X_train, X_val, y_train, y_val = train_test_split(
+    X_DATA,
+    Y_LABELS,
+    test_size=TEST_TRAIN_RATIO,
+    stratify=Y_LABELS,
+    random_state=SEED
+)
 
-train_dataset = dataset.take(train_size)
-val_dataset = dataset.skip(train_size)
+train_dataset = tf.data.Dataset.from_tensor_slices((X_train, y_train))
+val_dataset   = tf.data.Dataset.from_tensor_slices((X_val, y_val))
 
+train_dataset = train_dataset.shuffle(len(X_train), seed=SEED)
 train_dataset = train_dataset.batch(BATCH_SIZE).prefetch(tf.data.AUTOTUNE)
+
 val_dataset = val_dataset.batch(BATCH_SIZE).prefetch(tf.data.AUTOTUNE)
+
 
 if DO_STATUS_UPDATES:
     print(f"[/] Total samples: {n}\n - training samples: {train_size}\n - validation samples: {val_size}")
@@ -81,7 +88,10 @@ base_model = EfficientNetB1(
 # we want this because the weights for the base model are already well-tuned for 
 # general image feature extraction, and we only want to train the new classification 
 # head on top of it.
-base_model.trainable = False
+base_model.trainable = True
+
+for layer in base_model.layers[:-20]:
+    layer.trainable = False
 
 # Add custom classification head
 x = base_model.output                                           # start with the output of the base model
@@ -91,18 +101,17 @@ x = layers.Dense(128, activation=HIDDEN_LAYER_ACTIVATION)(x)    # fully connecte
 x = layers.Dropout(0.3)(x)                                      # dropout for regularization to prevent overfitting
 
 num_classes = len(np.unique(Y_LABELS))
-outputs = layers.Dense(num_classes, activation=OUTPUT_LAYER_ACTIVATION)(x)
-# Create the final model structure
+outputs = layers.Dense(1, activation=OUTPUT_LAYER_ACTIVATION)(x)
 model = models.Model(inputs=base_model.input, outputs=outputs)
 
 # Compile the model with an appropriate optimizer, loss function, and metrics
 model.compile(
-    # more info on Adam optimizer: https://keras.io/api/optimizers/adam/
     optimizer=optimizers.Adam(learning_rate=LEARNING_RATE),
-    # we use sparse_categorical_crossentropy because our labels are integers (0, 1, 2, ...)
     loss=LOSS_FUNCTION,
     metrics=[
-        "accuracy"
+        tf.keras.metrics.BinaryAccuracy(name="acc"),
+        tf.keras.metrics.Precision(name="precision"),
+        tf.keras.metrics.Recall(name="recall")
     ]
 )
 
@@ -127,7 +136,8 @@ print("[/] grab a snack, this may take a while...")
 history = model.fit(
     train_dataset,
     validation_data=val_dataset,
-    epochs=EPOCHS
+    epochs=EPOCHS,
+    class_weight=class_weights
 )
 
 if DO_STATUS_UPDATES:
@@ -141,8 +151,8 @@ if temp_input == "y":
     print("[/] model saved as truffle_cnn_model.h5")
 
 print("[/] printing final training accuracy and loss")
-final_train_acc = history.history["accuracy"][-1]
-final_val_acc = history.history["val_accuracy"][-1]
+final_train_acc = history.history["acc"][-1]
+final_val_acc = history.history["val_acc"][-1]
 final_train_loss = history.history["loss"][-1]
 final_val_loss = history.history["val_loss"][-1]
 print(f" - final training accuracy: {final_train_acc:.4f}")
