@@ -84,14 +84,10 @@ base_model = EfficientNetB1(
     weights="imagenet"          # use pre-trained weights from ImageNet
 )
 
-# Freeze the base model to prevent its weights from being updated during training
-# we want this because the weights for the base model are already well-tuned for 
-# general image feature extraction, and we only want to train the new classification 
-# head on top of it.
 base_model.trainable = True
 
-for layer in base_model.layers[:-20]:
-    layer.trainable = False
+#for layer in base_model.layers[:-20]:
+#    layer.trainable = False
 
 # Add custom classification head
 x = base_model.output                                           # start with the output of the base model

@@ -40,3 +40,20 @@ Original Model with 200 random sampels and seed=0:
    macro avg       0.41      0.50      0.45       200
 weighted avg       0.66      0.81      0.73       200
 '''
+
+'''
+Updated model
+Confusion Matrix:
+[[ 63 100]
+ [  1  36]]
+
+Classification Report:
+              precision    recall  f1-score   support
+
+           0       0.98      0.39      0.56       163
+           1       0.26      0.97      0.42        37
+
+    accuracy                           0.49       200
+   macro avg       0.62      0.68      0.49       200
+weighted avg       0.85      0.49      0.53       200
+'''
