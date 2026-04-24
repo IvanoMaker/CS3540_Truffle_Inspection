@@ -1,23 +1,50 @@
 import matplotlib.pyplot as plt
-import numpy as np
-from tensorflow.keras.models import load_model
-from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+import json
 
-x_data = np.load("x_resized.npy")
-labels = np.load("y_labels.npy")
-model = load_model("truffle_cnn_model.h5")
+history_dict = json.load(open("models/CNN/training_history.json", "r"))
 
-size = x_data.shape[0]
+history = history_dict  # load your JSON
 
-y_pred_probs = model.predict(x_data)
-y_pred_probs = y_pred_probs.ravel()
-y_pred = (y_pred_probs > 0.5).astype(int)
+epochs = range(1, len(history["acc"]) + 1)
 
-# Metrics
-cm = confusion_matrix(labels, y_pred)
-disp = ConfusionMatrixDisplay(confusion_matrix=cm,display_labels=["Satisfactory", "Defective"])
-disp.plot(cmap=plt.cm.RdPu)
-plt.xlabel("Predicted Label")
-plt.ylabel("True Label")
-plt.title("Confusion Matrix for Truffle CNN Model")
+plt.figure(figsize=(12, 8))
+
+# Accuracy
+plt.subplot(2,2,1)
+plt.plot(epochs, history["acc"], label="Train")
+plt.plot(epochs, history["val_acc"], label="Val")
+plt.ylim(0, 1)
+plt.title("Accuracy")
+plt.grid(True)
+plt.legend()
+
+# Loss
+plt.subplot(2,2,2)
+plt.plot(epochs, history["loss"], label="Train")
+plt.plot(epochs, history["val_loss"], label="Val")
+plt.ylim(0, 1)
+plt.title("Loss")
+plt.grid(True)
+plt.legend()
+
+# Precision
+plt.subplot(2,2,3)
+plt.plot(epochs, history["precision"], label="Train")
+plt.plot(epochs, history["val_precision"], label="Val")
+plt.ylim(0, 1)
+plt.title("Precision (Defective)")
+plt.grid(True)
+plt.legend()
+
+# Recall
+plt.subplot(2,2,4)
+plt.plot(epochs, history["recall"], label="Train")
+plt.plot(epochs, history["val_recall"], label="Val")
+plt.ylim(0, 1)
+plt.title("Recall (Defective)")
+plt.grid(True)
+plt.legend()
+
+plt.suptitle("CNN Training Metrics", fontsize=18, fontweight="bold")
+plt.tight_layout(rect=[0, 0, 1, 0.95])
 plt.show()
