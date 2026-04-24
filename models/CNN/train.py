@@ -1,4 +1,5 @@
 import os
+import json
 import numpy as np
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # turn off debugging messages
 import tensorflow as tf
@@ -40,7 +41,7 @@ class_weights = dict(enumerate(class_weights))
 EPOCHS = 20                          # number of training epochs
 TEST_TRAIN_RATIO = 0.25              # proportion of data to use for validation
 IMAGE_SHAPE = (240, 240, 3)          # size of input images, should never change
-BATCH_SIZE = 32                      # number of samples per training batch
+BATCH_SIZE = 8                       # number of samples per training batch
 HIDDEN_LAYER_ACTIVATION = "relu"     # activation function for hidden layers
 OUTPUT_LAYER_ACTIVATION = "sigmoid"  # activation function for output layer
 LOSS_FUNCTION = "binary_crossentropy"  # loss function for training
@@ -138,6 +139,9 @@ history = model.fit(
 if DO_STATUS_UPDATES:
     print("[/] training complete!")
 
+with open("training_history.json", "w") as f:
+    json.dump(history.history, f)
+
 print("[?] would you like to save the model to disk?")
 temp_input = input("    (y/n): ").lower()
 
@@ -162,8 +166,8 @@ except KeyError:
 
 print("[/] plotting training history")
 
-plt.plot(history.history["accuracy"], label="train acc")
-plt.plot(history.history["val_accuracy"], label="val acc")
+plt.plot(history.history["acc"], label="train acc")
+plt.plot(history.history["val_acc"], label="val acc")
 plt.ylim(0, 1)
 plt.xlabel("Epoch")
 plt.ylabel("Accuracy")
