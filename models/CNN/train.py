@@ -96,7 +96,6 @@ x = layers.BatchNormalization()(x)                              # batch normaliz
 x = layers.Dense(128, activation=HIDDEN_LAYER_ACTIVATION)(x)    # fully connected layer with specified activation function
 x = layers.Dropout(0.3)(x)                                      # dropout for regularization to prevent overfitting
 
-num_classes = len(np.unique(Y_LABELS))
 outputs = layers.Dense(1, activation=OUTPUT_LAYER_ACTIVATION)(x)
 model = models.Model(inputs=base_model.input, outputs=outputs)
 
