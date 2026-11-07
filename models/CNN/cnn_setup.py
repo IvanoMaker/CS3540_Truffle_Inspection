@@ -20,7 +20,7 @@ import tensorflow as tf
 X_DATA = np.load(X_DATA_PATH).reshape(-1, 128, 128, 3)
 Y_LABELS = np.load(Y_LABELS_PATH)
 
-INPUT_LAYER_SIZE = (240, 240) # input layer size for EfficientNetB1
+INPUT_LAYER_SIZE = (120, 120) # input layer size for EfficientNetB1
 
 # convert image to a 3D Numpy array
 # takes image path input and returns 240x240x3 matrix (width x height x rgb channels)

@@ -16,6 +16,11 @@ DO_STATUS_UPDATES = True
 # If False, the dataset will be shuffled randomly each time, which may lead to different training/validation splits on each run.
 SEEDED_SHUFFLE = True
 
+gpus = tf.config.list_physical_devices('GPU')
+if gpus:
+  for gpu in gpus:
+    tf.config.experimental.set_memory_growth(gpu, True)
+
 try:
     X_DATA = np.load("x_resized.npy")
 except FileNotFoundError:
@@ -40,8 +45,8 @@ class_weights = dict(enumerate(class_weights))
 # control and display constants
 EPOCHS = 20                          # number of training epochs
 TEST_TRAIN_RATIO = 0.25              # proportion of data to use for validation
-IMAGE_SHAPE = (240, 240, 3)          # size of input images, should never change
-BATCH_SIZE = 8                       # number of samples per training batch
+IMAGE_SHAPE = (120, 120, 3)          # size of input images, should never change
+BATCH_SIZE = 4                       # number of samples per training batch
 HIDDEN_LAYER_ACTIVATION = "relu"     # activation function for hidden layers
 OUTPUT_LAYER_ACTIVATION = "sigmoid"  # activation function for output layer
 LOSS_FUNCTION = "binary_crossentropy"  # loss function for training
@@ -65,13 +70,15 @@ X_train, X_val, y_train, y_val = train_test_split(
     random_state=SEED
 )
 
-train_dataset = tf.data.Dataset.from_tensor_slices((X_train, y_train))
-val_dataset   = tf.data.Dataset.from_tensor_slices((X_val, y_val))
+# Force dataset creation and preprocessing pipelines onto the CPU
+with tf.device('/CPU:0'):
+  train_dataset = tf.data.Dataset.from_tensor_slices((X_train, y_train))
+  val_dataset = tf.data.Dataset.from_tensor_slices((X_val, y_val))
 
-train_dataset = train_dataset.shuffle(len(X_train), seed=SEED)
-train_dataset = train_dataset.batch(BATCH_SIZE).prefetch(tf.data.AUTOTUNE)
+  train_dataset = train_dataset.shuffle(len(X_train), seed=SEED)
+  train_dataset = train_dataset.batch(BATCH_SIZE).prefetch(tf.data.AUTOTUNE)
 
-val_dataset = val_dataset.batch(BATCH_SIZE).prefetch(tf.data.AUTOTUNE)
+  val_dataset = val_dataset.batch(BATCH_SIZE).prefetch(tf.data.AUTOTUNE)
 
 
 if DO_STATUS_UPDATES:
